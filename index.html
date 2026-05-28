@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercado Mágico da Adição e Subtração</title>
+<style>
+:root{--roxo:#6c5ce7;--rosa:#ff6bcb;--azul:#45aaf2;--verde:#26de81;--amarelo:#fed330;--vermelho:#ff4757;--escuro:#25324b}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial,sans-serif;background:linear-gradient(135deg,#f3e8ff,#dff9fb);color:var(--escuro);overflow-x:hidden}
+.bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bg span{position:absolute;font-size:clamp(2rem,6vw,5rem);font-weight:1000;color:rgba(108,92,231,.13);animation:flutuar 12s linear infinite}
+@keyframes flutuar{from{transform:translateY(110vh) rotate(0);opacity:0}20%{opacity:1}to{transform:translateY(-20vh) rotate(360deg);opacity:0}}
+.app{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+.tela{display:none;width:min(1100px,100%);background:white;border-radius:30px;padding:24px;box-shadow:0 25px 60px rgba(108,92,231,.22)}
+.tela.ativa{display:block}
+.abertura{text-align:center;color:white;background:linear-gradient(135deg,#6c5ce7,#45aaf2 55%,#ff6bcb)}
+.logo{font-size:clamp(2.2rem,7vw,4.8rem);font-weight:1000;text-shadow:0 7px 0 #0003;animation:pulse 1s infinite alternate}
+@keyframes pulse{to{transform:scale(1.04)}}
+.mascote{font-size:4.5rem;animation:pular 1s infinite alternate}
+@keyframes pular{to{transform:translateY(-10px)}}
+.caixa-info{background:rgba(255,255,255,.18);border:5px solid rgba(255,255,255,.55);border-radius:24px;padding:20px;margin:18px auto;max-width:780px}
+h1,h2,h3{margin:10px 0;color:var(--escuro)}.abertura h1,.abertura h2{color:white}
+p{font-size:1.1rem;line-height:1.45}
+button{border:0;border-radius:18px;padding:14px 18px;font-weight:900;font-size:1rem;cursor:pointer;transition:.2s}
+button:hover{transform:translateY(-2px) scale(1.03)}
+.primario{background:linear-gradient(135deg,var(--amarelo),#ff9f43);color:#3b2500}
+.secundario{background:#e8f1ff;color:#1e3a8a}
+.perigo{background:#ffe5ef;color:#a00037}
+.botoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.centro{justify-content:center}
+.badge{display:inline-block;background:var(--roxo);color:white;border-radius:999px;padding:10px 16px;font-weight:900}
+.topo{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.status{display:flex;gap:10px;flex-wrap:wrap}
+.pill{background:#f4f7ff;padding:10px 14px;border-radius:999px;font-weight:900}
+.coin-score{display:flex;align-items:center;gap:8px}
+.coin-drawn{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7ad 0 18%,#facc15 19% 70%,#d97706 71%);border:3px solid #b7791f;box-shadow:inset -3px -3px 0 rgba(0,0,0,.12);position:relative}
+.coin-drawn:after{content:"$";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:1000;color:#7c4a03}
+.barra{height:18px;background:#edf2ff;border-radius:999px;overflow:hidden;margin:16px 0}
+.progresso{height:100%;width:0;background:linear-gradient(90deg,var(--verde),var(--amarelo),var(--rosa));transition:.35s}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:white;border-radius:26px;padding:20px;box-shadow:inset 6px 6px 14px #0000000d;border:2px solid #eef2ff}
+.prof-box{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+.prof{font-size:5rem;animation:profMove 1.2s ease-in-out infinite alternate;filter:drop-shadow(0 8px 8px #0002)}
+@keyframes profMove{from{transform:rotate(-2deg) translateY(0)}to{transform:rotate(2deg) translateY(-8px)}}
+.balao{flex:1;border:4px solid var(--roxo);border-radius:26px;padding:16px;background:white;font-weight:900;font-size:1.12rem;position:relative}
+.balao:before{content:"";position:absolute;left:-18px;bottom:22px;border-width:12px 18px 12px 0;border-style:solid;border-color:transparent var(--roxo) transparent transparent}
+.balao:after{content:"";position:absolute;left:-11px;bottom:25px;border-width:9px 14px 9px 0;border-style:solid;border-color:transparent white transparent transparent}
+.enunciado{background:#fff6d8;border-left:10px solid var(--amarelo);border-radius:22px;padding:20px;text-align:center}
+.grande{font-size:clamp(1.8rem,4vw,2.7rem);font-weight:1000;color:var(--roxo)}
+.pergunta{margin-top:14px;background:#e8f1ff;border-radius:22px;padding:18px;text-align:center;font-size:1.45rem;font-weight:1000;color:#1e3a8a}
+.visual{background:#fff8e8;border:3px dashed #feca57;border-radius:22px;padding:18px;text-align:center;margin-top:16px}
+.resumo-visual{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.resumo-card{background:white;border:2px solid #ffe29a;border-radius:18px;padding:14px;font-weight:900}
+.resumo-card .emoji{font-size:2.2rem;margin-bottom:6px}
+.conta-principal{font-size:2.2rem;font-weight:1000;color:var(--roxo);background:#fff6d8;border-radius:20px;padding:16px;text-align:center}
+.conta-box{background:#f8fbff;border:2px solid #e5ecff;border-radius:22px;padding:16px;margin-top:14px}
+.linha{display:flex;align-items:center;justify-content:space-between;gap:10px;background:white;border-radius:16px;padding:12px;margin:9px 0;font-weight:900}
+input{width:120px;padding:12px;border-radius:14px;border:3px solid #dbe3ef;text-align:center;font-size:1.2rem;font-weight:900}
+input.erro{border-color:var(--vermelho);background:#fff0f3}
+.material-area{background:#f8fbff;border:2px solid #e5ecff;border-radius:22px;padding:14px;margin-top:14px}
+.md-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.md-card{background:white;border-radius:16px;padding:10px;border:2px solid #edf2ff}
+.md-titulo{font-weight:1000;color:var(--roxo);margin-bottom:8px}
+.md-linha{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;justify-content:center}
+.bloco10{width:32px;height:105px;border-radius:10px;background:repeating-linear-gradient(to bottom,#ffe066 0 9px,#f59f00 9px 10px);border:2px solid #f59f00}
+.unidade{width:28px;height:28px;border-radius:8px;background:#ffd43b;border:2px solid #f59f00}
+.feedback{min-height:58px;margin-top:14px;font-size:1.1rem;font-weight:900}
+.ok{color:#087f5b}.falha{color:#c92a2a}
+.dica{background:#e8f1ff;border-left:8px solid var(--azul);border-radius:18px;padding:12px;margin-top:12px;font-weight:850}
+.mapa{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:24px 0}
+.casa{width:64px;height:64px;border-radius:20px;background:#fff3bf;border:3px solid #ffd43b;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:1000;position:relative}
+.casa.ativa{background:var(--verde);color:white;transform:scale(1.12)}
+.personagem{position:absolute;top:-36px;font-size:2rem;animation:pular .6s infinite alternate}
+.sinal-sumindo{text-align:center;font-size:4rem;color:var(--rosa);font-weight:1000;animation:sumir .9s ease forwards}
+@keyframes sumir{to{transform:scale(0) rotate(180deg);opacity:0}}
+.galaga-wrap{background:linear-gradient(135deg,#5f27cd,#48dbfb);border:6px solid var(--amarelo);border-radius:28px;padding:18px;color:white;box-shadow:inset 0 0 40px #0005}
+.galaga-hud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.galaga-hud .pill{background:rgba(255,255,255,.18);color:white}
+#galagaCanvas{width:100%;height:auto;display:block;background:#111827;border-radius:22px;touch-action:none;box-shadow:inset 0 0 30px #000}
+.galaga-help{color:white;background:rgba(255,255,255,.14);border-left:8px solid var(--verde)}
+.final{font-size:2rem;font-weight:1000;color:var(--roxo)}
+.relatorio{width:100%;border-collapse:collapse;margin-top:18px;border-radius:16px;overflow:hidden}
+.relatorio th,.relatorio td{padding:10px;border-bottom:1px solid #e5ecf5;text-align:center}
+.relatorio th{background:var(--roxo);color:white}
+.confete{position:fixed;top:-20px;width:10px;height:16px;animation:cair 1.4s linear forwards}
+@keyframes cair{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
+@media(max-width:850px){.grid,.resumo-visual{grid-template-columns:1fr}.linha{flex-direction:column;align-items:flex-start}input{width:100%}.prof{font-size:4rem}.balao{font-size:1rem}}
+</style>
+</head>
+
+<body>
+<div class="bg" id="bg"></div>
+<div class="app">
+
+<section id="inicio" class="tela ativa abertura">
+  <div class="logo">🌈 Mercado Mágico</div>
+  <div class="mascote">🦊✨</div>
+  <div class="caixa-info">
+    <h2>Adição e Subtração para o 3º ano</h2>
+    <p>Resolva situações com objetos, Material Dourado e um mini Galaga infantil.</p>
+    <p><strong>Adição:</strong> juntar. <strong>Subtração:</strong> retirar.</p>
+  </div>
+  <div class="botoes centro">
+    <button class="primario" onclick="iniciar()">Começar</button>
+    <button class="secundario" onclick="falarInicio()">Ouvir instruções</button>
+    <button class="perigo" onclick="alternarSom()" id="somBtn">Som: ligado</button>
+  </div>
+</section>
+
+<section id="mapaTela" class="tela">
+  <h1>🗺️ Caminho das Fases</h1>
+  <p>A raposinha avançou para a próxima missão.</p>
+  <div class="mapa" id="mapa"></div>
+  <div class="sinal-sumindo" id="sinalTransicao">+</div>
+</section>
+
+<section id="galaga" class="tela">
+  <div class="galaga-wrap">
+    <div class="galaga-hud">
+      <span class="badge">🚀 Galaga Infantil</span>
+      <div class="status">
+        <div class="pill">Monstrinhos: <span id="galagaKills">0</span>/6</div>
+        <div class="pill coin-score"><span class="coin-drawn"></span><span id="galagaMoedas">0</span></div>
+      </div>
+    </div>
+    <canvas id="galagaCanvas" width="900" height="470"></canvas>
+    <p class="dica galaga-help">Mova a nave com mouse, toque ou setas. Aperte espaço ou toque para lançar estrelinhas.</p>
+  </div>
+</section>
+
+<section id="jogo" class="tela">
+  <div class="topo">
+    <div>
+      <span class="badge" id="faseBadge"></span>
+      <h2>Adição e Subtração com Objetos</h2>
+    </div>
+    <div class="status">
+      <div class="pill">✅ <span id="acertos">0</span></div>
+      <div class="pill">❌ <span id="erros">0</span></div>
+      <div class="pill coin-score"><span class="coin-drawn"></span><span id="moedas">0</span></div>
+    </div>
+  </div>
+
+  <div class="barra"><div class="progresso" id="progresso"></div></div>
+
+  <div class="prof-box">
+    <div class="prof">🦊</div>
+    <div class="balao" id="falaProf"></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="enunciado">
+        <div class="grande" id="situacao"></div>
+        <div id="contexto" style="font-size:1.3rem;font-weight:900;margin-top:8px"></div>
+      </div>
+      <div class="pergunta" id="pergunta"></div>
+      <div class="visual">
+        <strong>Veja com atenção:</strong>
+        <div id="visual"></div>
+      </div>
+      <div class="dica" id="dicaBox">Observe a situação para descobrir a resposta.</div>
+      <div class="botoes">
+        <button class="secundario" onclick="mostrarDica()">Ver dica</button>
+        <button class="secundario" onclick="falarFase()">Ouvir</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🧮 Resolva</h3>
+      <div class="conta-principal" id="contaPrincipal"></div>
+      <div class="conta-box">
+        <div class="linha">
+          <span id="linhaConta"></span>
+          <input id="resposta" type="number">
+        </div>
+      </div>
+      <div class="material-area">
+        <h3>Material Dourado da conta</h3>
+        <div class="md-grid">
+          <div class="md-card"><div class="md-titulo" id="mdTituloA"></div><div class="md-linha" id="mdA"></div></div>
+          <div class="md-card"><div class="md-titulo" id="mdTituloB"></div><div class="md-linha" id="mdB"></div></div>
+          <div class="md-card"><div class="md-titulo" id="mdTituloR">Resultado: responda para conferir</div><div class="md-linha" id="mdR"><strong>?</strong></div></div>
+        </div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="botoes">
+        <button class="primario" onclick="corrigir()">Responder</button>
+        <button class="secundario" onclick="limpar()">Limpar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="final" class="tela">
+  <span class="badge">Relatório Final</span>
+  <h1>🏆 Missão concluída!</h1>
+  <p class="final" id="placar"></p>
+  <p id="mensagemFinal"></p>
+  <div class="dica" id="analiseFinal"></div>
+  <table class="relatorio">
+    <thead><tr><th>Fase</th><th>Conta</th><th>Resposta</th><th>Tentativas</th></tr></thead>
+    <tbody id="corpoRelatorio"></tbody>
+  </table>
+  <div class="botoes">
+    <button class="primario" onclick="iniciar()">Jogar novamente</button>
+    <button class="secundario" onclick="falarFinal()">Ouvir resultado</button>
+  </div>
+</section>
+
+</div>
+
+<script>
+const fases=[
+ {tipo:"+",a:8,b:5,obj:"maçãs",genero:"f",emoji:"🍎",texto:"No mercado havia 8 maçãs. Chegaram mais 5 maçãs."},
+ {tipo:"-",a:14,b:6,obj:"balas",genero:"f",emoji:"🍬",texto:"A raposinha tinha 14 balas. Ela deu 6 balas para os amigos."},
+ {tipo:"+",a:12,b:7,obj:"lápis",genero:"m",emoji:"✏️",texto:"Na caixa havia 12 lápis. A professora colocou mais 7 lápis."},
+ {tipo:"-",a:20,b:8,obj:"bolinhas",genero:"f",emoji:"🟣",texto:"Havia 20 bolinhas no pote. Foram retiradas 8 bolinhas."},
+ {tipo:"+",a:23,b:14,obj:"flores",genero:"f",emoji:"🌸",texto:"O jardim tinha 23 flores. Nasceram mais 14 flores."},
+ {tipo:"-",a:35,b:12,obj:"estrelas",genero:"f",emoji:"⭐",texto:"No mural havia 35 estrelas. A turma retirou 12 estrelas."},
+ {tipo:"+",a:28,b:16,obj:"carrinhos",genero:"m",emoji:"🚗",texto:"Na prateleira havia 28 carrinhos. Chegaram mais 16 carrinhos."},
+ {tipo:"-",a:42,b:18,obj:"figurinhas",genero:"f",emoji:"🃏",texto:"João tinha 42 figurinhas. Ele trocou 18 figurinhas."},
+ {tipo:"+",a:36,b:27,obj:"moedas",genero:"f",emoji:"🪙",texto:"O cofrinho tinha 36 moedas. Foram colocadas mais 27 moedas."},
+ {tipo:"-",a:60,b:24,obj:"cubos",genero:"m",emoji:"🧊",texto:"Havia 60 cubos. A turma usou 24 cubos."}
+];
+
+let fase=0,acertos=0,erros=0,moedas=0,tentativas=0,dicaNivel=0,historico=[];
+let mudo=false,ctx=null;
+let keys={},galagaRAF=null,galagaRunning=false,galagaLastShot=0;
+let galaga={shipX:450,shipTarget:450,shots:[],enemies:[],stars:[],explosions:[],kills:0};
+const $=id=>document.getElementById(id);
+
+function criarFundo(){
+ const sinais=["+","−","=","10","20","30","40","50"];
+ for(let i=0;i<32;i++){
+  const s=document.createElement("span");
+  s.textContent=sinais[Math.floor(Math.random()*sinais.length)];
+  s.style.left=Math.random()*100+"vw";
+  s.style.animationDelay=Math.random()*10+"s";
+  s.style.animationDuration=8+Math.random()*8+"s";
+  $("bg").appendChild(s);
+ }
+}
+criarFundo();
+
+function tela(id){document.querySelectorAll(".tela").forEach(t=>t.classList.remove("ativa"));$(id).classList.add("ativa")}
+function resultado(f){return f.tipo==="+" ? f.a+f.b : f.a-f.b}
+function textoOperacao(f){return f.tipo==="+" ? `${f.a} mais ${f.b}` : `${f.a} menos ${f.b}`}
+function palavraQuantos(f){return f.genero==="f" ? "Quantas" : "Quantos"}
+function textoPergunta(f){return f.tipo==="+" ? `${palavraQuantos(f)} ${f.obj} há ao todo?` : `${palavraQuantos(f)} ${f.obj} sobraram?`}
+function textoFala(f){return `${f.texto} ${textoPergunta(f)} A conta é ${textoOperacao(f)}.`}
+
+function iniciar(){pararGalaga();fase=0;acertos=0;erros=0;moedas=0;historico=[];transicaoMapa()}
+
+function transicaoMapa(){
+ pararGalaga();
+ tela("mapaTela");
+ $("sinalTransicao").textContent=fases[fase]?.tipo || "+";
+ $("mapa").innerHTML="";
+ for(let i=0;i<fases.length;i++){
+  const casa=document.createElement("div");
+  casa.className="casa"+(i===fase?" ativa":"");
+  casa.innerHTML=i===fase?`<span class="personagem">🦊</span>${i+1}`:`${i+1}`;
+  $("mapa").appendChild(casa);
+ }
+ somPasso();
+ setTimeout(carregar,1200);
+}
+
+function montarVisual(f){
+ const acao=f.tipo==="+"?"Chegaram":"Foram retirados";
+ const sinal=f.tipo==="+"?"+":"−";
+ return `<div class="resumo-visual">
+  <div class="resumo-card"><div class="emoji">${f.emoji}</div><strong>Tinha</strong><br>${f.a} ${f.obj}</div>
+  <div class="resumo-card"><div class="emoji">${sinal} ${f.emoji}</div><strong>${acao}</strong><br>${f.b} ${f.obj}</div>
+ </div>
+ <div style="margin-top:12px;font-weight:900;color:#6c5ce7">Agora resolva: ${f.a} ${f.tipo} ${f.b}</div>`;
+}
+
+function mdHTML(n){
+ const d=Math.floor(n/10),u=n%10;
+ let html="";
+ for(let i=0;i<d;i++) html+=`<div class="bloco10" title="dezena"></div>`;
+ for(let i=0;i<u;i++) html+=`<div class="unidade" title="unidade"></div>`;
+ return html || "<strong>0</strong>";
+}
+
+function montarMaterialConta(f,mostrarResultado=false){
+ const r=resultado(f);
+ $("mdTituloA").textContent=`Primeira quantidade: ${f.a}`;
+ $("mdA").innerHTML=mdHTML(f.a);
+ $("mdTituloB").textContent=f.tipo==="+" ? `Quantidade que chegou: +${f.b}` : `Quantidade retirada: −${f.b}`;
+ $("mdB").innerHTML=mdHTML(f.b);
+ if(mostrarResultado){$("mdTituloR").textContent=`Resultado: ${r}`;$("mdR").innerHTML=mdHTML(r)}
+ else{$("mdTituloR").textContent="Resultado: responda para conferir";$("mdR").innerHTML="<strong>?</strong>"}
+}
+
+function carregar(){
+ tela("jogo");
+ const f=fases[fase];
+ tentativas=0;dicaNivel=0;
+ $("faseBadge").textContent=`Fase ${fase+1} de ${fases.length}`;
+ $("situacao").textContent=f.tipo==="+"?"Vamos juntar!":"Vamos retirar!";
+ $("contexto").textContent=f.texto;
+ $("pergunta").textContent=textoPergunta(f);
+ $("falaProf").textContent=textoFala(f);
+ $("visual").innerHTML=montarVisual(f);
+ $("contaPrincipal").textContent=`${f.a} ${f.tipo} ${f.b}`;
+ $("linhaConta").textContent=`${f.a} ${f.tipo} ${f.b} =`;
+ $("dicaBox").textContent=f.tipo==="+"?"Adicionar é juntar quantidades.":"Subtrair é retirar uma quantidade.";
+ $("progresso").style.width=`${(fase/fases.length)*100}%`;
+ atualizarStatus();
+ montarMaterialConta(f,false);
+ limpar();
+ setTimeout(falarFase,350);
+}
+
+function atualizarStatus(){$("acertos").textContent=acertos;$("erros").textContent=erros;$("moedas").textContent=moedas}
+
+function mostrarDica(){
+ const f=fases[fase];
+ dicaNivel++;
+ if(dicaNivel===1){$("dicaBox").textContent=f.tipo==="+"?`Junte ${f.a} com ${f.b}.`:`Comece com ${f.a} e retire ${f.b}.`}
+ else if(dicaNivel===2){$("dicaBox").textContent=f.tipo==="+"?`Conte para frente a partir de ${f.a}.`:`Conte para trás a partir de ${f.a}.`}
+ else{$("dicaBox").textContent=`Use a conta: ${textoOperacao(f)}.`}
+ $("falaProf").textContent=$("dicaBox").textContent;
+ clique();
+}
+
+function corrigir(){
+ clique();
+ tentativas++;
+ const f=fases[fase],r=resultado(f);
+ $("resposta").classList.remove("erro");
+ if(Number($("resposta").value)===r){
+  acertos++;moedas+=10;
+  historico.push({fase:fase+1,conta:`${f.a} ${f.tipo} ${f.b}`,res:r,tentativas});
+  atualizarStatus();
+  $("feedback").className="feedback ok";
+  $("feedback").textContent=`Muito bem! A resposta é ${r}.`;
+  $("falaProf").textContent=`Excelente! ${textoOperacao(f)} é igual a ${r}.`;
+  montarMaterialConta(f,true);
+  somAcerto();confetes();
+  setTimeout(()=>{fase++; if(fase>=fases.length) finalizar(); else iniciarGalaga()},1200);
+ }else{
+  erros++;atualizarStatus();
+  $("resposta").classList.add("erro");
+  $("feedback").className="feedback falha";
+  $("feedback").textContent="Revise a resposta. Use os objetos e o Material Dourado.";
+  $("falaProf").textContent="Quase! Olhe os objetos, observe a conta e tente novamente.";
+  somErro();
+ }
+}
+
+function limpar(){
+ $("resposta").value="";
+ $("resposta").classList.remove("erro");
+ $("feedback").textContent="";
+ $("feedback").className="feedback";
+ if(fases[fase]) montarMaterialConta(fases[fase],false);
+}
+
+function finalizar(){
+ pararGalaga();
+ tela("final");
+ const pct=Math.round((acertos/(acertos+erros||1))*100);
+ $("placar").textContent=`${acertos} fases concluídas • ${erros} erros • ${pct}%`;
+ $("mensagemFinal").textContent=`Você ganhou ${moedas} moedas praticando adição e subtração.`;
+ $("analiseFinal").textContent=erros<=3?"Ótimo trabalho! Você compreendeu bem quando juntar e quando retirar.":"Você concluiu as fases. Revise as contas em que precisou de mais tentativas.";
+ $("corpoRelatorio").innerHTML=historico.map(h=>`<tr><td>${h.fase}</td><td>${h.conta}</td><td>${h.res}</td><td>${h.tentativas}</td></tr>`).join("");
+ somAcerto();confetes();
+}
+
+function iniciarGalaga(){
+ tela("galaga");
+ const canvas=$("galagaCanvas");
+ galaga={shipX:450,shipTarget:450,shots:[],enemies:[],stars:[],explosions:[],kills:0};
+ for(let i=0;i<55;i++)galaga.stars.push({x:Math.random()*900,y:Math.random()*470,s:Math.random()*2+.5,v:Math.random()*1+.3});
+ for(let i=0;i<6;i++)galaga.enemies.push({x:140+(i%3)*300,y:70+Math.floor(i/3)*85,baseX:140+(i%3)*300,phase:Math.random()*6.28,alive:true,emoji:["👾","🐙","🛸"][i%3]});
+ $("galagaKills").textContent=0;
+ $("galagaMoedas").textContent=moedas;
+ galagaRunning=true;
+ canvas.onmousemove=e=>{const r=canvas.getBoundingClientRect();galaga.shipTarget=(e.clientX-r.left)*(canvas.width/r.width)};
+ canvas.ontouchmove=e=>{e.preventDefault();const r=canvas.getBoundingClientRect();galaga.shipTarget=(e.touches[0].clientX-r.left)*(canvas.width/r.width)};
+ canvas.onclick=()=>atirarGalaga();
+ tocarMusicaGalaga();
+ loopGalaga();
+}
+
+document.addEventListener("keydown",e=>{keys[e.key]=true;if($("galaga").classList.contains("ativa")&&e.key===" ")atirarGalaga()});
+document.addEventListener("keyup",e=>keys[e.key]=false);
+
+function atirarGalaga(){
+ if(!galagaRunning)return;
+ const now=performance.now();
+ if(now-galagaLastShot<190)return;
+ galagaLastShot=now;
+ galaga.shots.push({x:galaga.shipX,y:395,v:10});
+ somTiro();
+}
+
+function loopGalaga(){
+ if(!galagaRunning)return;
+ const canvas=$("galagaCanvas"),c=canvas.getContext("2d"),W=900,H=470;
+ if(keys.ArrowLeft)galaga.shipTarget-=14;
+ if(keys.ArrowRight)galaga.shipTarget+=14;
+ galaga.shipTarget=Math.max(45,Math.min(W-45,galaga.shipTarget));
+ galaga.shipX+=(galaga.shipTarget-galaga.shipX)*0.2;
+ c.clearRect(0,0,W,H);
+ desenharEspacoInfantil(c,W,H);
+ desenharNaveInfantil(c,galaga.shipX,405);
+ galaga.shots.forEach(s=>s.y-=s.v);
+ galaga.shots=galaga.shots.filter(s=>s.y>-20);
+ galaga.shots.forEach(s=>desenharTiroInfantil(c,s));
+ galaga.enemies.forEach(e=>{
+  if(!e.alive)return;
+  e.x=e.baseX+Math.sin(performance.now()/520+e.phase)*38;
+  desenharInimigoInfantil(c,e.x,e.y,e.emoji);
+  galaga.shots.forEach(s=>{
+   if(Math.abs(s.x-e.x)<38 && Math.abs(s.y-e.y)<34){
+    e.alive=false;s.y=-100;galaga.kills++;moedas++;
+    $("galagaKills").textContent=galaga.kills;
+    $("galagaMoedas").textContent=moedas;
+    galaga.explosions.push({x:e.x,y:e.y,r:5,a:1});
+    galaga.explosions.push({x:e.x,y:e.y+30,r:18,a:1,moeda:true});
+    somExplosao();
+   }
+  });
+ });
+ galaga.explosions.forEach(ex=>{ex.r+=5;ex.a-=.05;desenharExplosaoInfantil(c,ex)});
+ galaga.explosions=galaga.explosions.filter(ex=>ex.a>0);
+ if(galaga.kills>=6){pararGalaga();somAcerto();setTimeout(transicaoMapa,900);return}
+ galagaRAF=requestAnimationFrame(loopGalaga);
+}
+
+function desenharEspacoInfantil(c,W,H){
+ const g=c.createLinearGradient(0,0,0,H);
+ g.addColorStop(0,"#2e86de");g.addColorStop(.55,"#5f27cd");g.addColorStop(1,"#341f97");
+ c.fillStyle=g;c.fillRect(0,0,W,H);
+ galaga.stars.forEach(st=>{st.y+=st.v;if(st.y>H){st.y=0;st.x=Math.random()*W}c.fillStyle=`rgba(255,255,255,${.4+st.s/3})`;c.beginPath();c.arc(st.x,st.y,st.s,0,Math.PI*2);c.fill()});
+ c.font="28px system-ui";c.fillText("☁️",60,80);c.fillText("🌙",805,70);c.fillText("⭐",430,50);
+}
+
+function desenharNaveInfantil(c,x,y){
+ c.save();c.translate(x,y);c.rotate(-Math.PI/4);c.shadowColor="#fed330";c.shadowBlur=18;c.font="58px system-ui";c.textAlign="center";c.textBaseline="middle";c.fillText("🚀",0,0);c.restore();
+}
+function desenharTiroInfantil(c,s){c.save();c.shadowColor="#fed330";c.shadowBlur=16;c.font="26px system-ui";c.fillText("⭐",s.x-12,s.y);c.restore()}
+function desenharInimigoInfantil(c,x,y,emoji){c.save();c.shadowColor="#ff6bcb";c.shadowBlur=12;c.font="46px system-ui";c.fillText(emoji,x-23,y+18);c.restore()}
+
+function desenharExplosaoInfantil(c,ex){
+ c.save();
+ c.globalAlpha=ex.a;
+ if(ex.moeda){
+  c.beginPath();c.fillStyle="#facc15";c.arc(ex.x,ex.y,18,0,Math.PI*2);c.fill();
+  c.lineWidth=4;c.strokeStyle="#b7791f";c.stroke();
+  c.fillStyle="#fff7ad";c.beginPath();c.arc(ex.x-6,ex.y-6,5,0,Math.PI*2);c.fill();
+  c.fillStyle="#7c4a03";c.font="bold 20px Arial";c.textAlign="center";c.textBaseline="middle";c.fillText("$",ex.x,ex.y+1);
+ }else{
+  c.font=`${Math.min(60,ex.r*2)}px system-ui`;
+  c.fillText("✨",ex.x-ex.r,ex.y);
+ }
+ c.restore();
+}
+
+function pararGalaga(){galagaRunning=false;cancelAnimationFrame(galagaRAF);galagaRAF=null}
+
+function audio(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();return ctx}
+function tom(f,d,t="sine",v=.12){
+ if(mudo)return;
+ const c=audio(),o=c.createOscillator(),g=c.createGain();
+ o.type=t;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(c.destination);
+ o.start();g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.stop(c.currentTime+d);
+}
+function clique(){tom(520,.06,"triangle",.08)}
+function somAcerto(){[523,659,784,1046].forEach((n,i)=>setTimeout(()=>tom(n,.15,"square",.09),i*90))}
+function somErro(){tom(220,.18,"sawtooth",.1);setTimeout(()=>tom(150,.18,"sawtooth",.09),130)}
+function somPasso(){[330,392,494].forEach((n,i)=>setTimeout(()=>tom(n,.12,"square",.08),i*120))}
+function somTiro(){tom(900,.05,"triangle",.06);setTimeout(()=>tom(1200,.04,"sine",.04),45)}
+function somExplosao(){tom(420,.08,"triangle",.08);setTimeout(()=>tom(680,.08,"sine",.06),70)}
+function tocarMusicaGalaga(){if(mudo)return;[392,523,659,784,659,523].forEach((n,i)=>setTimeout(()=>tom(n,.09,"square",.035),i*110))}
+function alternarSom(){mudo=!mudo;$("somBtn").textContent=mudo?"Som: desligado":"Som: ligado";if(mudo)speechSynthesis.cancel()}
+function falar(txt){if(mudo)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang="pt-BR";u.rate=.9;speechSynthesis.speak(u)}
+function falarInicio(){falar("Nesta atividade, você vai resolver problemas de adição e subtração. Adicionar é juntar. Subtrair é retirar.")}
+function falarFase(){falar(textoFala(fases[fase]))}
+function falarFinal(){falar($("placar").textContent+". "+$("mensagemFinal").textContent+". "+$("analiseFinal").textContent)}
+function confetes(){
+ const cores=["#fed330","#ff6bcb","#26de81","#45aaf2","#6c5ce7"];
+ for(let i=0;i<35;i++){const c=document.createElement("div");c.className="confete";c.style.left=Math.random()*100+"vw";c.style.background=cores[Math.floor(Math.random()*cores.length)];document.body.appendChild(c);setTimeout(()=>c.remove(),1600)}
+}
+</script>
+</body>
+</html>
